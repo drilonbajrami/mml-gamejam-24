@@ -1,18 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Wall : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public void OnCollisionEnter(Collision collision)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        if (collision.collider.CompareTag("Player"))
+            GetComponent<MeshRenderer>().enabled = true;
     }
 }

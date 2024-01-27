@@ -1,19 +1,25 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class MazeGenerator : MonoBehaviour
 {
-    public GameObject Container;
-    public GameObject WallContainer;
+    public GameObject Floor;
+    public GameObject CellContainer;
 
-    private const int MAX_SIZE = 17;
     public int mazeSize = 17;
+    public float wallWidth = 1f;
+    public float wallHeight = 1.5f;
+
+    public GameObject Player;
 
     [Space(20)]
     [Header("Input")]
     public GameObject CellPrefab;
     public Wall WallPrefab;
     public Cell[,] grid;
+
+    public List<Wall> walls = new List<Wall>();
 
     private List<MazeAlgorithm> algorithms;
     private MazeAlgorithm selectedAlgorithm;
@@ -37,10 +43,12 @@ public class MazeGenerator : MonoBehaviour
     private void GenerateMaze()
     {
         ClearGrid();
-        grid = GenerateCells(mazeSize, CellPrefab, Container.transform);
+        grid = GenerateCells(mazeSize, CellPrefab, CellContainer.transform);
         selectedAlgorithm.Run(grid, mazeSize, mazeSize);
 
-        UpdateCellNeighbourFlags();
+        GenerateWalls();
+
+        Player.transform.position = grid[1, 0].transform.position;
     }
 
     /// <summary>
@@ -50,10 +58,14 @@ public class MazeGenerator : MonoBehaviour
     {
         Cell[,] grid = new Cell[mazeSize, mazeSize];
 
+        Floor.transform.localScale = new Vector3(mazeSize * wallWidth / 10f, 1f, mazeSize * wallWidth / 10f);
+        Floor.transform.localPosition = new Vector3(mazeSize * wallWidth / 2f, 0f, mazeSize * wallWidth / 2f);
+
         for (int z = 0; z < mazeSize; z++)
             for (int x = 0; x < mazeSize; x++) {
                 GameObject cellGO = Instantiate(cellPrefab, Vector3.zero, Quaternion.identity, parent);
-                cellGO.transform.position = new Vector3(x + 0.5f, transform.localScale.y / 2f, z + 0.5f);
+                cellGO.transform.localScale = new Vector3(wallWidth, wallHeight, wallWidth);
+                cellGO.transform.localPosition = new Vector3(x * wallWidth + wallWidth / 2f, cellGO.transform.localScale.y / 2f, z * wallWidth + wallWidth / 2f);
                 grid[x, z] = cellGO.GetComponent<Cell>();
                 grid[x, z].SetIndex(x, z);
                 grid[x, z].SetName($"{x}:{z}");
@@ -64,36 +76,33 @@ public class MazeGenerator : MonoBehaviour
 
     private void ClearGrid()
     {
-        if(Container.transform.childCount > 0)
-            for(int i = Container.transform.childCount - 1; i >= 0; i--)
-                Destroy(Container.transform.GetChild(i).gameObject);
+        if(CellContainer.transform.childCount > 0)
+            for(int i = CellContainer.transform.childCount - 1; i >= 0; i--)
+                Destroy(CellContainer.transform.GetChild(i).gameObject);
     }
 
-    public void Quit() => Application.Quit();
-
-    private List<Cell> GetWallCells()
+    private void GenerateWalls()
     {
-        List<Cell> cells = new();
+        walls.Clear();
 
-        return cells;
-    }
-
-    private void UpdateCellNeighbourFlags()
-    {
         for(int z = 0; z < mazeSize; z++)
             for(int x = 0; x < mazeSize; x++) {
                 if (grid[x, z].IsBlocked) {
-                    UpdateFlagsForCell(grid, x, z, mazeSize, mazeSize);
-                    grid[x, z].SpawnWalls(WallPrefab, WallContainer.transform);
+                    UpdateWallCellFlags(grid, x, z, mazeSize, mazeSize);
+                    walls.AddRange(grid[x, z].SpawnWalls(WallPrefab));
                 }  
             }
     }
 
-    private void UpdateFlagsForCell(Cell[,] grid, int x, int y, int width, int height)
+    private void UpdateWallCellFlags(Cell[,] grid, int x, int y, int width, int height)
     {
-        grid[x, y].North = y + 1 < height && grid[x, y + 1].IsPassage();
-        grid[x, y].South = y - 1 > -1 && grid[x, y - 1].IsPassage();
-        grid[x, y].East = x + 1 < width && grid[x + 1, y].IsPassage();
-        grid[x, y].West = x - 1 > -1 && grid[x - 1, y].IsPassage();
+        // Set flags based on which direction does this wall cell have a passage neighbour cell.
+        Cell wallCell = grid[x, y];
+        wallCell.North = y + 1 < height && grid[x, y + 1].IsPassage();
+        wallCell.South = y - 1 > -1 && grid[x, y - 1].IsPassage();
+        wallCell.East = x + 1 < width && grid[x + 1, y].IsPassage();
+        wallCell.West = x - 1 > -1 && grid[x - 1, y].IsPassage();
     }
+
+    public void Quit() => Application.Quit();
 }

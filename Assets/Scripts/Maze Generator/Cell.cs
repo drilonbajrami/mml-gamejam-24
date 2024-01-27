@@ -34,37 +34,36 @@ public class Cell : MonoBehaviour
     public void TurnIntoPassage()
     {
         IsBlocked = false;
-        gameObject.SetActive(false);
+        gameObject.GetComponent<MeshRenderer>().enabled = false;
     }
 
-    public List<Wall> SpawnWalls(Wall wallPrefab, Transform parent)
+    public List<Wall> SpawnWalls(Wall wallPrefab)
     {
         List<Wall> walls = new();
 
         if(North) {
             Wall wall = Instantiate(wallPrefab, transform);
-            wall.gameObject.transform.localPosition = new Vector3(0, 0, transform.localScale.z / 2f);
-            wall.gameObject.transform.localRotation = Quaternion.LookRotation(transform.forward * -1, transform.up);
+            wall.gameObject.transform.SetLocalPositionAndRotation(new Vector3(0, 0, 0.5f), Quaternion.LookRotation(transform.forward * -1, transform.up));
+            walls.Add(wall);
         }
 
         if(South) {
             Wall wall = Instantiate(wallPrefab, transform);
-            wall.gameObject.transform.localPosition = new Vector3(0, 0, -transform.localScale.z / 2f);
-            wall.gameObject.transform.localRotation = Quaternion.LookRotation(transform.forward, transform.up);
+            wall.gameObject.transform.SetLocalPositionAndRotation(new Vector3(0, 0, -0.5f), Quaternion.LookRotation(transform.forward, transform.up));
+            walls.Add(wall);
         }
 
         if(East) {
             Wall wall = Instantiate(wallPrefab, transform);
-            wall.gameObject.transform.localPosition = new Vector3(transform.localScale.x / 2f, 0, 0);
-            wall.gameObject.transform.localRotation = Quaternion.LookRotation(transform.right * -1, transform.up);
+            wall.gameObject.transform.SetLocalPositionAndRotation(new Vector3(0.5f, 0, 0), Quaternion.LookRotation(transform.right * -1, transform.up));
+            walls.Add(wall);
         }
 
         if(West) {
             Wall wall = Instantiate(wallPrefab, transform);
-            wall.gameObject.transform.localPosition = new Vector3(-transform.localScale.x / 2f, 0, 0);
-            wall.gameObject.transform.localRotation = Quaternion.LookRotation(transform.right, transform.up);
+            wall.gameObject.transform.SetLocalPositionAndRotation(new Vector3(-0.5f, 0, 0), Quaternion.LookRotation(transform.right, transform.up));
+            walls.Add(wall);
         }
-
 
         GetComponent<MeshRenderer>().enabled = false;
         return walls;

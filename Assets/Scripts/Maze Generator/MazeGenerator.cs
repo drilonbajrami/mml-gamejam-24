@@ -17,6 +17,8 @@ public class MazeGenerator : MonoBehaviour
     [Header("Input")]
     public GameObject CellPrefab;
     public Wall WallPrefab;
+    public FinishLine finishLine;
+
     public Cell[,] grid;
 
     public List<Wall> walls = new List<Wall>();
@@ -32,10 +34,14 @@ public class MazeGenerator : MonoBehaviour
             new RecursiveBackTracker(),
         };
 
-        selectedAlgorithm = algorithms[1];
+        selectedAlgorithm = algorithms[0];
     }
 
-    void Start() => GenerateMaze();
+    public void Play()
+    {
+        MemeDealer.Instance.ShuffleMemes();
+        GenerateMaze();
+    }
 
     /// <summary> 
     /// Listener method for 'Generate' button onClick event
@@ -48,7 +54,9 @@ public class MazeGenerator : MonoBehaviour
 
         GenerateWalls();
 
-        Player.transform.position = grid[1, 0].transform.position;
+        SpawnFinishLine();
+
+        Player.transform.position = grid[1, 1].transform.position;
     }
 
     /// <summary>
@@ -102,6 +110,14 @@ public class MazeGenerator : MonoBehaviour
         wallCell.South = y - 1 > -1 && grid[x, y - 1].IsPassage();
         wallCell.East = x + 1 < width && grid[x + 1, y].IsPassage();
         wallCell.West = x - 1 > -1 && grid[x - 1, y].IsPassage();
+    }
+
+    private void SpawnFinishLine()
+    {
+        float yScale = 30;
+        Vector3 position = grid[mazeSize - 2, mazeSize - 1].transform.localPosition;
+        finishLine.transform.localScale = new Vector3(wallWidth, yScale, wallWidth);
+        finishLine.transform.localPosition = new Vector3(position.x, yScale / 2f, position.z);
     }
 
     public void Quit() => Application.Quit();

@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -9,9 +7,6 @@ public class PlayerController : MonoBehaviour
     public float walkSpeed = 6f;
     public float runSpeed = 12f;
 
-    public float jumpPower = 7f;
-    public float gravity = 10f;
-
     public float lookSpeed = 2f;
     public float lookXLimit = 45f;
 
@@ -20,8 +15,12 @@ public class PlayerController : MonoBehaviour
 
     public bool canMove = true;
 
-
     CharacterController characterController;
+
+    public MazeGenerator mazeGenerator;
+    public GameObject mainMenu;
+    public Camera menuCamera;
+
     void Start()
     {
         characterController = GetComponent<CharacterController>();
@@ -31,34 +30,17 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        #region Handles Movment
         Vector3 forward = transform.TransformDirection(Vector3.forward);
         Vector3 right = transform.TransformDirection(Vector3.right);
 
         // Press Left Shift to run
         bool isRunning = Input.GetKey(KeyCode.LeftShift);
+        //playerCamera.fieldOfView = isRunning ? 120 : 60f;
         float curSpeedX = canMove ? (isRunning ? runSpeed : walkSpeed) * Input.GetAxis("Vertical") : 0;
         float curSpeedY = canMove ? (isRunning ? runSpeed : walkSpeed) * Input.GetAxis("Horizontal") : 0;
         float movementDirectionY = moveDirection.y;
         moveDirection = (forward * curSpeedX) + (right * curSpeedY);
 
-        #endregion
-
-        #region Handles Jumping
-        if (Input.GetButton("Jump") && canMove && characterController.isGrounded) {
-            moveDirection.y = jumpPower;
-        }
-        else {
-            moveDirection.y = movementDirectionY;
-        }
-
-        if (!characterController.isGrounded) {
-            moveDirection.y -= gravity * Time.deltaTime;
-        }
-
-        #endregion
-
-        #region Handles Rotation
         characterController.Move(moveDirection * Time.deltaTime);
 
         if (canMove) {
@@ -68,6 +50,15 @@ public class PlayerController : MonoBehaviour
             transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
         }
 
-        #endregion
+        if(Input.GetKeyDown(KeyCode.O)) {
+            mazeGenerator.Play();
+        }
+        else if (Input.GetKeyDown(KeyCode.Escape)) {
+            gameObject.SetActive(false);
+            menuCamera.gameObject.SetActive(true);
+            mainMenu.SetActive(true);
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
     }
 }

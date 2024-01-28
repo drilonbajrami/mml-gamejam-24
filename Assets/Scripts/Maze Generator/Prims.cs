@@ -32,7 +32,6 @@ public class Prims : MazeAlgorithm
         }
 
         //// Start and End points
-        grid[1, 0].TurnIntoPassage();
         grid[width - 2, height - 1].TurnIntoPassage();
     }
 
